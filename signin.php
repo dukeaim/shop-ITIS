@@ -7,45 +7,46 @@ $_SESSION['role'];
 <head>
   <title></title>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-
+  <link rel="stylesheet" href="main.css">
 </head>
 
-<body style="padding-top:10px;">
+<body>
 
 <?php
 
-echo <<<HERE
-	<form method = "POST" action ="signin.php" >
 
-		<input type ="text" name = "email" placeholder = "e-mail" required><br/>
+$connect = mysql_connect("localhost","root","") or die(mysql_error());
+mysql_select_db("shop");
+echo <<<HERE
+<div class="form">
+  <form method = "POST" action ="signin.php" >
+
+    <input type ="text" name = "email" placeholder = "e-mail" required><br/>
     <input type ="password" name = "password" placeholder = "password" required><br/>
-		<input type="submit" name ="button" value = "Войти">
-	</form>
+    <input type="submit" name ="button" value = "Войти">
+  </form>
+</div>
   <a href="register.php">Зарегистрироваться</a></br>
   <a href = "index.php">Вернуться к заказам</a>
 HERE;
   if(isset($_POST['button']))
   {
-  	if (filter_var($_POST['email'], FILTER_VALIDATE_EMAIL))
-  	{
+    if (filter_var($_POST['email'], FILTER_VALIDATE_EMAIL))
+    {
       $hash = md5($_POST['password']);
       $user = $_POST['email'];
-      $b=false;
-      $fp = fopen('users.csv','r');
-      while(($data = fgetcsv($fp, 100, ','))!==FALSE){
-        
-        if(($data[0]==$user)&&($data[2]==$hash))
-        {
-            echo 'Вы успешно вошли, '.$data[1];
-            $_SESSION['name'] = $data[1];
-            $_SESSION['role'] = $data[3]; 
-            $b=true;
-            break;
-        }
-      }
-      if(!$b)
-        echo 'Такой пользователь не найден';
+      $query = "SELECT * FROM user WHERE email='$user' AND password='$hash' ";
+      $result = mysql_query($query) or die(mysql_error());
+      $row = mysql_fetch_assoc($result);
       
+      if($row!=null)
+      {
+        echo 'Вы успешно вошли, '.$row['name'];
+        $_SESSION['name'] = $row['name'];
+        $_SESSION['role'] = $row['role']; 
+      }
+      else echo 'Такой пользователь не найден';
+
     }
     else echo 'Некорректный ввод';
   }
